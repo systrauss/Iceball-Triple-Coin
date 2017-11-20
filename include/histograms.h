@@ -16,7 +16,9 @@
 #include <TFile.h>
 
 void makeHistograms(int nGeDets, int nGeCuts, int nSiLiDets, int nSiLiCuts);
+void makeHistograms(int nGeDets, int nSiLiDets, int nGeGeCuts, int nGeSiLiCuts, int nSiLiSiLiCuts);
 void fillHistograms(int nConstraints, std::vector<std::vector<double> >dConstraints, std::vector<double> dEnCut, std::vector<double> dGeDetectors, std::vector<double> dSiLiDetectors, std::vector<double> dBGO, std::vector<double> dGeT, std::vector<double> dSiLiT, bool GeorSiLi);
-void writeHistToFile(TFile* fOut);
+void fillHistograms(int nConstraints, std::vector<std::vector<double> >dConstraints, std::vector<double> dEnCut1, std::vector<double> dEnCut2,std::vector<double> dGeDetectors, std::vector<double> dSiLiDetectors, std::vector<double> dBGO, std::vector<double> dGeT, std::vector<double> dSiLiT, bool GeorSiLi1, bool GeorSiLi2);
+void writeHistToFile(TFile* fOut, bool bTripleCoin);
 
 #endif

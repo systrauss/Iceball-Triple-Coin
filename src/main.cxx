@@ -49,6 +49,13 @@ extern std::vector<std::vector<TH1F*> > sili_en_ge_cut;
 extern std::vector<std::vector<TH1F*> > ge_en_sili_cut;
 extern std::vector<std::vector<TH1F*> > sili_en_sili_cut;
 
+extern std::vector<std::vector<TH1F*> > ge_en_ge_ge_cut;
+extern std::vector<std::vector<TH1F*> > sili_en_ge_ge_cut;
+extern std::vector<std::vector<TH1F*> > ge_en_ge_sili_cut;
+extern std::vector<std::vector<TH1F*> > sili_en_ge_sili_cut;
+extern std::vector<std::vector<TH1F*> > ge_en_sili_sili_cut;
+extern std::vector<std::vector<TH1F*> > sili_en_sili_sili_cut;
+
 extern int nGeOrder; //Order of calibration i.e. 1 = linear.
 extern int nGeDets; //Total number of signals from Germanium detectors
 extern int nGeSegments; //number of segments in a single Germanium crystal, for adding purposes
@@ -66,6 +73,12 @@ std::vector<std::vector<double> > dGeBounds; //bounds for cuts
 std::vector<std::vector<double> > dSiLiBounds; //bounds for cuts
 int nGeConstraints;
 int nSiLiConstraints;
+std::vector<std::vector<double> > dGeGeBounds; //bounds for cuts
+std::vector<std::vector<double> > dGeSiLiBounds; //bounds for cuts
+std::vector<std::vector<double> > dSiLiSiLiBounds; //bounds for cuts
+int nGeGeConstraints;
+int nGeSiLiConstraints;
+int nSiLiSiLiConstraints;
 double dTimeLow;
 double dTimeHigh;
 
@@ -75,21 +88,36 @@ int main(int argc, char* argv[]) //Order of arguments: run #, output filename, c
 	int nRunNum;
     nRunNum = atoi(argv[1]); //Run to do the cuts on
 	char* sOut = argv[2]; //file title to write to
-	char* sCut = argv[3]; //Cut file name indicator
-	dTimeLow = atof(argv[4]); //Time Low number
-	dTimeHigh = atof(argv[5]); //Time high number
+	char* sCut1 = argv[3]; //Cut file name indicator
+	char* sCut2 = argv[4]; //Cut file name indicator
+	dTimeLow = atof(argv[5]); //Time Low number
+	dTimeHigh = atof(argv[6]); //Time high number
 	readPaths(); //From Filelist.cxx
 	makeChain(nRunNum); //From Filelist.cxx
 	defineGeCoeff(); //From Coefficients.cxx
 	defineGeCoeff(nRunNum); //From Coefficients.cxx, correction terms
 	defineSiLiCoeff(); //From Coefficients.cxx
 	defineSiLiCoeff(nRunNum);  //From Coefficients.cxx
-	sprintf(buffer,"GeCut_%s.dat",sCut); //File name to input
-	nGeConstraints = defineConstraints(buffer,dGeBounds); //From constraints.cxx
-	sprintf(buffer,"SiLiCut_%s.dat",sCut); //File name to input
-	nSiLiConstraints = defineConstraints(buffer,dSiLiBounds);
 	defineBGO(); //From constraints.cxx
-	makeHistograms(nGeDets/nGeSegments,nGeConstraints,nSiLiDets,nSiLiConstraints); //from histograms.cxx
 	analysis ana(chain); //analysis class. Main part of code.
-	ana.Loop(Form("/scratch365/sstrauss/temp/%s_run_00%i.root",sOut,nRunNum),nRunNum); //fOut is in Filelist.h
+	if(strcmp(sCut2,"0")==0)
+	{
+		sprintf(buffer,"GeCut_%s.dat",sCut1); //File name to input
+		nGeConstraints = defineConstraints(buffer,dGeBounds); //From constraints.cxx
+		sprintf(buffer,"SiLiCut_%s.dat",sCut1); //File name to input
+		nSiLiConstraints = defineConstraints(buffer,dSiLiBounds);
+		makeHistograms(nGeDets/nGeSegments,nGeConstraints,nSiLiDets,nSiLiConstraints); //from histograms.cxx
+		ana.Loop(Form("/scratch365/sstrauss/temp/%s_run_00%i.root",sOut,nRunNum),nRunNum, false); //fOut is in Filelist.h
+	}
+	else
+	{
+		sprintf(buffer,"Cut_Ge_%s_Ge_%s.dat",sCut1,sCut2); //File name to input
+		nGeGeConstraints = defineTripleConstraints(buffer,dGeGeBounds); //From constraints.cxx
+		sprintf(buffer,"Cut_Ge_%s_SiLi_%s.dat",sCut1,sCut2); //File name to input
+		nGeSiLiConstraints = defineTripleConstraints(buffer,dGeSiLiBounds); //From constraints.cxx
+		sprintf(buffer,"Cut_SiLi_%s_SiLi_%s.dat",sCut1,sCut2); //File name to input
+		nSiLiSiLiConstraints = defineTripleConstraints(buffer,dSiLiSiLiBounds); //From constraints.cxx
+		makeHistograms(nGeDets/nGeSegments,nSiLiDets,nGeGeConstraints,nGeSiLiConstraints,nSiLiSiLiConstraints); //from histograms.cxx
+		ana.Loop(Form("/scratch365/sstrauss/temp/%s_run_00%i.root",sOut,nRunNum),nRunNum,true); //fOut is in Filelist.h
+	}
 }

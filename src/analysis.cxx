@@ -44,6 +44,13 @@ extern std::vector<std::vector<double> > dSiLiBounds; //bounds for cuts
 extern int nGeConstraints;
 extern int nSiLiConstraints;
 
+extern std::vector<std::vector<double> > dGeGeBounds; //bounds for cuts
+extern std::vector<std::vector<double> > dGeSiLiBounds; //bounds for cuts
+extern std::vector<std::vector<double> > dSiLiSiLiBounds; //bounds for cuts
+extern int nGeGeConstraints;
+extern int nGeSiLiConstraints;
+extern int nSiLiSiLiConstraints;
+
 extern int nBGODets; //Total number of signals from BGO detectors
 extern int nBGOPlace; //Start of BGOs in generalized array
 extern std::vector<double> dBGOThreshold;
@@ -54,9 +61,16 @@ extern std::vector<std::vector<TH1F*> > sili_en_ge_cut;
 extern std::vector<std::vector<TH1F*> > ge_en_sili_cut;
 extern std::vector<std::vector<TH1F*> > sili_en_sili_cut;
 
+extern std::vector<std::vector<TH1F*> > ge_en_ge_ge_cut;
+extern std::vector<std::vector<TH1F*> > sili_en_ge_ge_cut;
+extern std::vector<std::vector<TH1F*> > ge_en_ge_sili_cut;
+extern std::vector<std::vector<TH1F*> > sili_en_ge_sili_cut;
+extern std::vector<std::vector<TH1F*> > ge_en_sili_sili_cut;
+extern std::vector<std::vector<TH1F*> > sili_en_sili_sili_cut;
+
 using namespace std;
 
-void analysis::Loop(const char* fileName, int nRunNum)
+void analysis::Loop(const char* fileName, int nRunNum, bool bTripleCoin)
 {
    if (fChain == 0) return;
 
@@ -151,8 +165,17 @@ void analysis::Loop(const char* fileName, int nRunNum)
       }
 
       //Run the constraints subroutine. At this time, it does use timing gates
-      fillHistograms(nGeConstraints, dGeBounds, dGeEn, dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn,true);
-      fillHistograms(nSiLiConstraints, dSiLiBounds, dSiLiEn, dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn, false);
+      if(!bTripleCoin)
+      {
+        fillHistograms(nGeConstraints, dGeBounds, dGeEn, dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn,true);
+        fillHistograms(nSiLiConstraints, dSiLiBounds, dSiLiEn, dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn, false);
+      }
+      else
+      {
+        fillHistograms(nGeGeConstraints, dGeGeBounds, dGeEn, dGeEn,dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn,true,true);
+        fillHistograms(nGeSiLiConstraints, dGeSiLiBounds, dGeEn,dSiLiEn, dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn, true, false);
+        fillHistograms(nSiLiSiLiConstraints, dSiLiSiLiBounds, dSiLiEn, dSiLiEn, dGeEn, dSiLiEn, dBGO, dT_GeEn, dT_SiLiEn, false,false);
+      }
       if (Cut(ientry) < 0) continue;
    }
 
@@ -161,6 +184,6 @@ void analysis::Loop(const char* fileName, int nRunNum)
 
    //write to file
    fOut->cd();
-   writeHistToFile(fOut);
+   writeHistToFile(fOut, bTripleCoin);
    fOut->Close();
 }
