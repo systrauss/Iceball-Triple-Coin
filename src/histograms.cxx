@@ -182,16 +182,16 @@ void fillHistograms(int nConstraints, std::vector<std::vector<double> >dConstrai
 {
 	for(int i=0; i<nConstraints ; i++)
 	{
-		if((dEnCut1[(int)dConstraints[i][0]] > dConstraints[i][1] && //gate detector 1 lower limit
+		if(((dEnCut1[(int)dConstraints[i][0]] > dConstraints[i][1] && //gate detector 1 lower limit
 			dEnCut1[(int)dConstraints[i][0]] < dConstraints[i][2] && //gate detector 1 upper limit
 			GeorSiLi1                                             && //is germanium
 			dBGO[(int)dConstraints[i][0]] < dBGOThreshold[(int)dConstraints[i][0]]) //BGO Threshold met
 			|| //OR (above is Ge constraint, below is SiLi)
 		   (dEnCut1[(int)dConstraints[i][0]] > dConstraints[i][1] && //gate detector 1 lower limit
 		   	dEnCut1[(int)dConstraints[i][0]] < dConstraints[i][2] && //gate detector 1 upper limit
-		   	!GeorSiLi1)
+		   	!GeorSiLi1))
 			&&
-			(dEnCut2[(int)dConstraints[i][3]] > dConstraints[i][4] && //gate detector 2 lower limit
+			((dEnCut2[(int)dConstraints[i][3]] > dConstraints[i][4] && //gate detector 2 lower limit
 			dEnCut2[(int)dConstraints[i][3]] < dConstraints[i][5] && //gate detector 2 upper limit
 			GeorSiLi2                                             && //is germanium
 			dBGO[(int)dConstraints[i][3]] < dBGOThreshold[(int)dConstraints[i][3]]) //BGO Threshold met
