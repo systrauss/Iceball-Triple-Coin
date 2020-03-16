@@ -67,25 +67,9 @@ void makeChain(int nRunNum)
 	//Don't go through the loop for the runs marked above
 
 	bool bRealRun = true;
-	int i = 0;
 
-	while(bRealRun)
-	{
-		//NOTE: needs to be adjusted at some point to include single or triple digits
-		bRealRun = gSystem->IsFileInIncludePath(Form("%s%s%i-0%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, i, sFType.c_str()));
-		cout << Form("%s%s%i-0%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, i, sFType.c_str()) << "\t" << bRealRun << endl;
-		if (bRealRun)
-		{
-			//segment name formatting. -09 then -10
-			if(i < 10)
-			{
-				chain->Add(Form("%s%s%i-0%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, i, sFType.c_str()));
-			}
-			else
-			{
-				chain->Add(Form("%s%s%i-%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, i, sFType.c_str()));
-			}
-			i++;
-		}
-	}
+	//NOTE: needs to be adjusted at some point to include single or triple digits
+	bRealRun = gSystem->IsFileInIncludePath(Form("%s%s%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, sFType.c_str()));
+	cout << Form("%s%s%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, sFType.c_str()) << "\t" << bRealRun << endl;
+	chain->Add(Form("%s%s%i%s", sFilepath.c_str(), sRun.c_str(), nRunNum, sFType.c_str()));
 }

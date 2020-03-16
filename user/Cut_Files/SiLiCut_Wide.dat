@@ -1,0 +1,8 @@
+6 //Total number of SiLi cuts to make
+SiLi number(0-6),centroid, sigma
+0,620,610
+1,633,593
+2,654,624
+3,645,625
+4,649,629
+5,680,660

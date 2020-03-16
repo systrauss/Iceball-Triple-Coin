@@ -12,7 +12,8 @@ Please check the README for more information about this code and it's purpose.
 #include <vector>
 
 //ROOT libraries
-#include <TROOT.h>
+#include "TSystem.h"
+#include "TROOT.h"
 #include "TH2.h"
 #include "TStyle.h"
 #include "TCanvas.h"
@@ -34,6 +35,13 @@ Please check the README for more information about this code and it's purpose.
 #include "histograms.h"
 #include "Coefficients.h"
 #include "Filelist.h"
+#include "timing.h"
+
+//Data tree files
+// #include "eventData.h"
+// #include "eventScaler.h"
+// #include "ExpEventDictionary.h"
+// #include "ExpEventLinkDef.h"
 
 using namespace std;
 
@@ -49,12 +57,6 @@ extern std::vector<std::vector<TH1F*> > sili_en_ge_cut;
 extern std::vector<std::vector<TH1F*> > ge_en_sili_cut;
 extern std::vector<std::vector<TH1F*> > sili_en_sili_cut;
 
-extern std::vector<std::vector<TH1F*> > ge_en_ge_ge_cut;
-extern std::vector<std::vector<TH1F*> > sili_en_ge_ge_cut;
-extern std::vector<std::vector<TH1F*> > ge_en_ge_sili_cut;
-extern std::vector<std::vector<TH1F*> > sili_en_ge_sili_cut;
-extern std::vector<std::vector<TH1F*> > ge_en_sili_sili_cut;
-extern std::vector<std::vector<TH1F*> > sili_en_sili_sili_cut;
 
 extern int nGeOrder; //Order of calibration i.e. 1 = linear.
 extern int nGeDets; //Total number of signals from Germanium detectors
@@ -73,14 +75,8 @@ std::vector<std::vector<double> > dGeBounds; //bounds for cuts
 std::vector<std::vector<double> > dSiLiBounds; //bounds for cuts
 int nGeConstraints;
 int nSiLiConstraints;
-std::vector<std::vector<double> > dGeGeBounds; //bounds for cuts
-std::vector<std::vector<double> > dGeSiLiBounds; //bounds for cuts
-std::vector<std::vector<double> > dSiLiSiLiBounds; //bounds for cuts
-int nGeGeConstraints;
-int nGeSiLiConstraints;
-int nSiLiSiLiConstraints;
-double dTimeLow;
-double dTimeHigh;
+
+Timing tGates;
 
 int main(int argc, char* argv[]) //Order of arguments: run #, output filename, cut filename, time low, time high
 {
@@ -89,9 +85,8 @@ int main(int argc, char* argv[]) //Order of arguments: run #, output filename, c
     nRunNum = atoi(argv[1]); //Run to do the cuts on
 	char* sOut = argv[2]; //file title to write to
 	char* sCut1 = argv[3]; //Cut file name indicator
-	char* sCut2 = argv[4]; //Cut file name indicator
-	dTimeLow = atof(argv[5]); //Time Low number
-	dTimeHigh = atof(argv[6]); //Time high number
+	char* sTime = argv[4]; //Cut file name indicator
+	gSystem->Load("/afs/crc.nd.edu/group/nsl/nuc/users/sstrauss/iceball_dec2014/Data/libExpEvent.so","", kTRUE);
 	readPaths(); //From Filelist.cxx
 	makeChain(nRunNum); //From Filelist.cxx
 	defineGeCoeff(); //From Coefficients.cxx
@@ -99,25 +94,19 @@ int main(int argc, char* argv[]) //Order of arguments: run #, output filename, c
 	defineSiLiCoeff(); //From Coefficients.cxx
 	defineSiLiCoeff(nRunNum);  //From Coefficients.cxx
 	defineBGO(); //From constraints.cxx
+	tGates = Timing(nGeDets/nGeSegments, nSiLiDets, sTime);
+	//Debugging for the Timing class
+	std::cout << "Germanium pairs: " <<  tGates.geGe.size() << std::endl;
+	//for (int i = 0; i < tGates.geGe.size(); i++) std::cout << tGates.geGe[i][0] <<"\t"  << tGates.geGe[i][1] <<std::endl; 
+	std::cout << "Germanium-SiLi pairs: " << tGates.geSiLi.size() << std::endl;
+	//for (int i = 0; i < tGates.geSiLi.size(); i++) std::cout << tGates.geSiLi[i][0] <<"\t"  << tGates.geSiLi[i][1] <<std::endl; 
+	std::cout << "SiLi pairs: " << tGates.siliSiLi.size() << std::endl;
+	//for (int i = 0; i < tGates.siliSiLi.size(); i++) std::cout << tGates.siliSiLi[i][0] <<"\t"  << tGates.siliSiLi[i][1] <<std::endl;
 	analysis ana(chain); //analysis class. Main part of code.
-	if(strcmp(sCut2,"0")==0)
-	{
-		sprintf(buffer,"GeCut_%s.dat",sCut1); //File name to input
-		nGeConstraints = defineConstraints(buffer,dGeBounds); //From constraints.cxx
-		sprintf(buffer,"SiLiCut_%s.dat",sCut1); //File name to input
-		nSiLiConstraints = defineConstraints(buffer,dSiLiBounds);
-		makeHistograms(nGeDets/nGeSegments,nGeConstraints,nSiLiDets,nSiLiConstraints); //from histograms.cxx
-		ana.Loop(Form("/scratch365/sstrauss/temp/%s_run_00%i.root",sOut,nRunNum),nRunNum, false); //fOut is in Filelist.h
-	}
-	else
-	{
-		sprintf(buffer,"Cut_Ge_%s_Ge_%s.dat",sCut1,sCut2); //File name to input
-		nGeGeConstraints = defineTripleConstraints(buffer,dGeGeBounds); //From constraints.cxx
-		sprintf(buffer,"Cut_Ge_%s_SiLi_%s.dat",sCut1,sCut2); //File name to input
-		nGeSiLiConstraints = defineTripleConstraints(buffer,dGeSiLiBounds); //From constraints.cxx
-		sprintf(buffer,"Cut_SiLi_%s_SiLi_%s.dat",sCut1,sCut2); //File name to input
-		nSiLiSiLiConstraints = defineTripleConstraints(buffer,dSiLiSiLiBounds); //From constraints.cxx
-		makeHistograms(nGeDets/nGeSegments,nSiLiDets,nGeGeConstraints,nGeSiLiConstraints,nSiLiSiLiConstraints); //from histograms.cxx
-		ana.Loop(Form("/scratch365/sstrauss/temp/%s_run_00%i.root",sOut,nRunNum),nRunNum,true); //fOut is in Filelist.h
-	}
+	sprintf(buffer,"GeCut_%s.dat",sCut1); //File name to input
+	nGeConstraints = defineConstraints(buffer,dGeBounds); //From constraints.cxx
+	sprintf(buffer,"SiLiCut_%s.dat",sCut1); //File name to input
+	nSiLiConstraints = defineConstraints(buffer,dSiLiBounds);
+	makeHistograms(nGeDets/nGeSegments,nGeConstraints,nSiLiDets,nSiLiConstraints); //from histograms.cxx
+	ana.Loop(Form("/scratch365/sstrauss/temp/%s_run_00%i.root",sOut,nRunNum),nRunNum, false); //fOut is in Filelist.h
 }

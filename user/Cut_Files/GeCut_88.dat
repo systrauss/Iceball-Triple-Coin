@@ -1,0 +1,6 @@
+4 //Total number of Ge cuts to make
+//Ge number(0-6),centroid, sigma
+0,88,2
+1,88,2
+0,130,2
+1,130,2

@@ -13,11 +13,11 @@ INCLUDES := -Iinclude -Iuser
 #folder with all the source files
 SOURCES := src
 #source files
-FILES := Coefficients.cxx Constraints.cxx histograms.cxx Filelist.cxx analysis.cxx main.cxx
+FILES := Coefficients.cxx Constraints.cxx histograms.cxx Filelist.cxx timing.cxx analysis.cxx main.cxx
 #this is the executable name
 EXECUTABLES := main
 #libraries
-LIBS          = $(ROOTLIBS) $(SYSLIBS)
+LIBS          = -L/afs/crc.nd.edu/group/nsl/nuc/users/sstrauss/iceball_dec2014/Code/Iceball-Coin-Timing/libExpEvent.so $(ROOTLIBS) $(SYSLIBS)
 #this are object files (take the names of sources and change the extensions)
 OBJECTS := $(FILES:.cxx=.o)
 
